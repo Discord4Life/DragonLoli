@@ -1,3 +1,4 @@
+const request = require('request-promise');
 const winston = require('winston');
 
 const config = require('./config');
@@ -8,20 +9,22 @@ request.get(config.stream, res => stream = res) // eslint-disable-line no-return
 	}); */
 
 class Guilds {
-	constructor(db, client, broadcast) {
+	constructor(db, client) {
 		this.db = db;
 		this.client = client;
 		this.settings = new Map();
 		this.listeners = new Map();
 		this.insertOrReplaceStmt = null;
 		this.deleteStmt = null;
-		this.stream = broadcast;
+		this.broadcast = this.client.createVoiceBroadcast();
 	}
 
 	async startup() {
 		await this.db.run('CREATE TABLE IF NOT EXISTS guilds (guild INTEGER PRIMARY KEY, settings TEXT)');
 
 		const rows = await this.db.all('SELECT CAST(guild as TEXT) as guild, settings FROM guilds');
+
+		this.broadcast.playStream(request(config.stream));
 
 		let currentRow = 0;
 
@@ -119,7 +122,7 @@ class Guilds {
 			vc.playBroadcast(this.broadcast);
 		}).catch(error => {
 			winston.error(`ERROR VOICE CONNECTION: (${voiceChannel.id}) for guild ${guild.name} (${guild.id})`);
-			winston.error(error.message);
+			winston.error(error);
 		});
 	}
 
