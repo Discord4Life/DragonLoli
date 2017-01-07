@@ -1,21 +1,21 @@
-const request = require('https');
 const winston = require('winston');
 
 const config = require('./config');
-let stream;
+/* let stream;
 request.get(config.stream, res => stream = res) // eslint-disable-line no-return-assign
 	.once('error', () => {
 		process.exit(1);
-	});
+	}); */
 
 class Guilds {
-	constructor(db, client) {
+	constructor(db, client, broadcast) {
 		this.db = db;
 		this.client = client;
 		this.settings = new Map();
 		this.listeners = new Map();
 		this.insertOrReplaceStmt = null;
 		this.deleteStmt = null;
+		this.stream = broadcast;
 	}
 
 	async startup() {
@@ -114,9 +114,9 @@ class Guilds {
 	}
 
 	joinVoice(guild, voiceChannel) {
-		voiceChannel.join({ shared: true }).then(vc => {
+		voiceChannel.join().then(vc => {
 			winston.info(`ADDED VOICE CONNECTION: (${voiceChannel.id}) for guild ${guild.name} (${guild.id})`);
-			vc.playSharedStream('listen.moe', stream);
+			vc.playBroadcast(this.broadcast);
 		}).catch(error => {
 			winston.error(`ERROR VOICE CONNECTION: (${voiceChannel.id}) for guild ${guild.name} (${guild.id})`);
 			winston.error(error.message);
@@ -125,7 +125,6 @@ class Guilds {
 
 	leaveVoice(guild, voiceChannel) {
 		winston.info(`REMOVED VOICE CONNECTION: For guild ${guild.name} (${guild.id})`);
-		voiceChannel.leaveSharedStream();
 		voiceChannel.disconnect();
 	}
 }
