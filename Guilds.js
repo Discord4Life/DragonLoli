@@ -1,3 +1,4 @@
+const request = require('request-promise');
 const winston = require('winston');
 
 const config = require('./config');
@@ -8,14 +9,14 @@ request.get(config.stream, res => stream = res) // eslint-disable-line no-return
 	}); */
 
 class Guilds {
-	constructor(db, client, broadcast) {
+	constructor(db, client) {
 		this.db = db;
 		this.client = client;
 		this.settings = new Map();
 		this.listeners = new Map();
 		this.insertOrReplaceStmt = null;
 		this.deleteStmt = null;
-		this.stream = broadcast;
+		this.broadcast = this.client.createVoiceBroadcast();
 	}
 
 	async startup() {
@@ -23,12 +24,7 @@ class Guilds {
 
 		const rows = await this.db.all('SELECT CAST(guild as TEXT) as guild, settings FROM guilds');
 
-		const statements = await Promise.all([
-			this.db.prepare('INSERT OR REPLACE INTO guilds VALUES(?, ?)'),
-			this.db.prepare('DELETE FROM guilds WHERE guild = ?')
-		]);
-		this.insertOrReplaceStmt = statements[0];
-		this.deleteStmt = statements[1];
+		this.broadcast.playStream(request(config.stream));
 
 		let currentRow = 0;
 
@@ -119,7 +115,7 @@ class Guilds {
 			vc.playBroadcast(this.broadcast);
 		}).catch(error => {
 			winston.error(`ERROR VOICE CONNECTION: (${voiceChannel.id}) for guild ${guild.name} (${guild.id})`);
-			winston.error(error.message);
+			winston.error(error);
 		});
 	}
 

@@ -4,7 +4,6 @@ const Discord = require('discord.js');
 const { oneLine, stripIndents } = require('common-tags');
 const path = require('path');
 const Raven = require('raven');
-const request = require('request-promise');
 const sqlite = require('sqlite');
 const WebSocket = require('ws');
 const winston = require('winston');
@@ -22,13 +21,10 @@ let listeners = 0;
 let radioJSON;
 let ws;
 
-const broadcast = client.createVoiceBroadcast();
-broadcast.playStream(request(config.stream));
-
 sqlite.open(path.join(__dirname, 'settings.db')).then(db => guilds = new Guilds(db, client)); // eslint-disable-line no-return-assign
 
-Raven.config(config.ravenKey);
-Raven.install();
+//Raven.config(config.ravenKey);
+//Raven.install();
 
 function connectWS(info) {
 	if (ws) ws.removeAllListeners();
