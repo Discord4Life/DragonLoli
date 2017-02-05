@@ -26,6 +26,13 @@ class Guilds {
 
 		this.broadcast.playStream(request(config.stream));
 
+		const statements = await Promise.all([
+			this.db.prepare('INSERT OR REPLACE INTO guilds VALUES(?, ?)'),
+			this.db.prepare('DELETE FROM guilds WHERE guild = ?')
+		]);
+		this.insertOrReplaceStmt = statements[0];
+		this.deleteStmt = statements[1];
+
 		let currentRow = 0;
 
 		const inverval = setInterval(() => {
