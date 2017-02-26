@@ -25,9 +25,6 @@ let streaming = false;
 
 sqlite.open(path.join(__dirname, 'settings.db')).then(db => guilds = new Guilds(db, client)); // eslint-disable-line no-return-assign
 
-Raven.config(config.ravenKey);
-Raven.install();
-
 function connectWS(info) {
 	if (ws) ws.removeAllListeners();
 	try {
@@ -88,25 +85,23 @@ function currentUsersAndGuildsGame() {
 	return setTimeout(currentSongGame, 10000);
 }
 
-function currentSongGame() {
-	let game = 'Loading data...';
-	if (radioJSON !== {}) game = `${radioJSON.artist_name} - ${radioJSON.song_name}`;
-	if (streaming) {
-		winston.info('PLAYING GAME: Setting playing game WITH streaming!');
-		client.user.setGame(game, 'https://twitch.tv/listen_moe');
-	} else {
-		winston.info('PLAYING GAME: Setting playing game WITHOUT streaming!');
-		client.user.setGame(game);
-	}
+function currentUsersAndGuildsGame() {
+	client.user.setGame(`for ${listeners} on ${client.guilds.size} servers`);
+	
+	return setTimeout(TouchingAndrew, 20000);
+}
 
-	return setTimeout(currentUsersAndGuildsGame, 20000);
+function TouchingAndrew() {
+	client.user.setGame(`with Andrew`);
+	
+	return setTimeout(currentUsersAndGuildsGame, 500);
 }
 
 client.on('error', winston.error)
 	.on('warn', winston.warn)
 	.on('ready', () => {
 		winston.info(oneLine`
-			CLIENT: Listen.moe ready!
+			CLIENT: 2DFam Radio is ready!
 			${client.user.username}#${client.user.discriminator} (ID: ${client.user.id})
 			Currently in ${client.guilds.size} servers.
 		`);
@@ -122,23 +117,28 @@ client.on('error', winston.error)
 	})
 	.on('guildCreate', guild => {
 		return guild.defaultChannel.sendEmbed({
-			description: stripIndents`**LISTEN.moe discord bot by Crawl**
+			description: stripIndents`**2DFam Radio - discord bot by Crawl**
 
-				**Usage:**
-				After adding me to your server, join a voice channel and type \`~~join\` to bind me to that voice channel.
-				Keep in mind that you need to have the \`Manage Server\` permission to use this command.
+					**Usage:**
+					After adding me to your server, join a voice channel and type \`2D!join\` to bind me to that voice channel.
+					Keep in mind that you need to have the \`Manage Server\` permission to use this command.
 
-				**Commands:**
-				**\\~~join**: Type this while in a voice channel to have the bot join that channel and start playing there. Limited to users with the "manage server" permission.
-				**\\~~leave**: Makes the bot leave the voice channel it's currently in.
-				**\\~~np**: Gets the currently playing song and artist. If the song was requested by someone, also gives their name.
-				**\\~~ignore**: Ignores commands in the current channel. Admin commands are exempt from the ignore.
-				**\\~~unignore**: Unignores commands in the current channel.
-				**\\~~ignore all**: Ignores commands in all channels on the guild.
-				**\\~~unignore all**: Unignores all channels on the guild.
-				**\\~~prefix !** Changes the bot's prefix for this server. Prefixes cannot contain whitespace, letters, or numbers - anything else is fair game. It's recommended that you stick with the default prefix of ~~, but this command is provided in case you find conflicts with other bots.
+					**Commands:**
+					**\ toodee!join**: Joins the voice channel you are currently in.
+					**\ toodee!leave**: Leaves the voice channel the bot is currently in.
+					
+					**2DFam Radio:**
+					W: http://community.2dfam.com/radio/
+					T: http://twitter.com/2DFam_Radio
+					
+					You can also download our apps, more information here: http://radio.2dfam.com/#apps
+					
+					**[Add me to your server](https://discordapp.com/oauth2/authorize?&client_id=276790073163513856&scope=bot&permissions=36702208)**
+					
+					-
 
-				For additional commands and help, please visit [Github](https://github.com/WeebDev/listen.moe-discord)`,
+					Check out the [github](https://github.com/GoNovaVFX/2DFam-Radio-Bot) rep.`,
+
 			color: 15473237
 		});
 	})
@@ -147,7 +147,7 @@ client.on('error', winston.error)
 	.on('message', msg => { // eslint-disable-line complexity
 		if (msg.channel.type === 'dm') return;
 		if (msg.author.bot) return;
-		const prefix = guilds.get(msg.guild.id, 'prefix', '~~');
+		const prefix = guilds.get(msg.guild.id, 'prefix', 'toodee!');
 
 		if (!msg.content.startsWith(prefix)) return;
 
@@ -204,72 +204,30 @@ client.on('error', winston.error)
 			guilds.remove(msg.guild.id, 'voiceChannel');
 			guilds.leaveVoice(msg.guild, voiceChannel);
 			return msg.channel.sendMessage(`I will stop streaming to your server now, ${msg.author}-san. (-ω-、)`);
-		} else if (message.startsWith(`${prefix}stats`)) {
-			if (!config.owners.includes(msg.author.id)) {
-				if (msg.author.id === '83700966167150592') {
-					return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
-				}
-
-				return msg.channel.sendMessage('Only the Botowners can view stats, gomen! 	<(￢0￢)>');
-			}
-
-			let users;
-			try {
-				users = client.voiceConnections
-					.map(vc => vc.channel.members.filter(me => !(me.user.bot || me.selfDeaf || me.deaf)).size)
-					.reduce((sum, members) => sum + members);
-			} catch (error) {
-				users = 0;
-			}
-
-			const nowplaying = `${radioJSON.artist_name ? `${radioJSON.artist_name} - ` : ''}${radioJSON.song_name}`;
-			const anime = radioJSON.anime_name ? `Anime: ${radioJSON.anime_name}` : '';
-			const requestedBy = radioJSON.requested_by ? `Requested by: [${radioJSON.requested_by}](https://forum.listen.moe/u/${radioJSON.requested_by})` : '';
-			const song = `${nowplaying}\n\n${anime}\n${requestedBy}`;
-
-			return msg.channel.sendEmbed({
-				color: 15473237,
-				author: {
-					url: 'https://github.com/WeebDev/listen.moe-discord',
-					name: 'Crawl, Geo, Anon & Kana'
-				},
-				title: 'LISTEN.moe (Click here to add the radio bot to your server)',
-				url: 'https://discordapp.com/oauth2/authorize?&client_id=222167140004790273&scope=bot&permissions=36702208',
-				fields: [
-					{ name: 'Now playing', value: song },
-					{ name: 'Radio Listeners', value: radioJSON.listeners, inline: true },
-					{ name: 'Discord Listeners', value: users, inline: true },
-					{ name: 'Servers', value: client.guilds.size, inline: true },
-					{ name: 'Voice Channels', value: client.voiceConnections.size, inline: true }
-				],
-				timestamp: new Date(),
-				thumbnail: { url: 'http://i.imgur.com/Jfz6qak.png' }
-			});
 		} else if (message.startsWith(`${prefix}help`)) {
 			return msg.channel.sendEmbed({
-				description: stripIndents`**LISTEN.moe discord bot by Crawl**
+				description: stripIndents`**2DFam Radio - discord bot by Crawl**
 
 					**Usage:**
-					After adding me to your server, join a voice channel and type \`~~join\` to bind me to that voice channel.
+					After adding me to your server, join a voice channel and type \`2D!join\` to bind me to that voice channel.
 					Keep in mind that you need to have the \`Manage Server\` permission to use this command.
 
 					**Commands:**
-					**\\~~join**: Joins the voice channel you are currently in.
-					**\\~~leave**: Leaves the voice channel the bot is currently in.
-					**\\~~np**: Displays the currently playing song.
+					**\ toodee!join**: Joins the voice channel you are currently in.
+					**\ toodee!leave**: Leaves the voice channel the bot is currently in.
+					
+					**2DFam Radio:**
+					W: http://community.2dfam.com/radio/
+					T: http://twitter.com/2DFam_Radio
+					
+					You can also download our apps, more information here: http://radio.2dfam.com/#apps
+					
+					**[Add me to your server](https://discordapp.com/oauth2/authorize?&client_id=276790073163513856&scope=bot&permissions=36702208)**
+					
+					-
 
-					For additional commands and help, please visit [Github](https://github.com/WeebDev/listen.moe-discord)`,
+					Check out the [github](https://github.com/GoNovaVFX/2DFam-Radio-Bot) rep.`,
 				color: 15473237
-			});
-		} else if (message.startsWith(`${prefix}np`)) {
-			const nowplaying = `${radioJSON.artist_name ? `${radioJSON.artist_name} - ` : ''}${radioJSON.song_name}`;
-			const anime = radioJSON.anime_name ? `Anime: ${radioJSON.anime_name}` : '';
-			const requestedBy = radioJSON.requested_by ? `Requested by: [${radioJSON.requested_by}](https://forum.listen.moe/u/${radioJSON.requested_by})` : '';
-			const song = `${nowplaying}\n\n${anime}\n${requestedBy}`;
-
-			return msg.channel.sendEmbed({
-				color: 15473237,
-				fields: [{ name: 'Now playing', value: song }]
 			});
 		} else if (message.startsWith(`${prefix}eval`)) {
 			if (!config.owners.includes(msg.author.id)) {
