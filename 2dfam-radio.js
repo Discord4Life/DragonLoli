@@ -169,7 +169,7 @@ client.on('error', winston.error)
 			return msg.channel.sendMessage(`I will stop streaming to your server now, ${msg.author}-san. (-ω-、)`);
 		} else if (message.startsWith(`${prefix}help`)) {
 			return msg.channel.sendEmbed({
-				description: stripIndents`**2DFam Radio - discord bot by Crawl**
+				description: stripIndents`**2DFam Radio**
 
 					**Usage:**
 					After adding me to your server, join a voice channel and type \`2D!join\` to bind me to that voice channel.
