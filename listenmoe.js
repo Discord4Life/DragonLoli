@@ -48,30 +48,6 @@ function connectWS(info) {
 	ws.on('error', winston.error);
 }
 
-const streamCheck = setInterval(() => {
-	try {
-		listeners = client.voiceConnections
-			.map(vc => vc.channel.members.filter(me => !(me.user.bot || me.selfDeaf || me.deaf)).size)
-			.reduce((sum, members) => sum + members);
-	} catch (error) {
-		listeners = 0;
-	}
-
-	request
-		.get('https://api.twitch.tv/kraken/streams/?limit=1&channel=listen_moe')
-		.set('Accept', 'application/vnd.twitchtv.v3+json')
-		.set('Client-ID', config.twitchClientID)
-		.end((err, res) => {
-			if (err || !res.streams) {
-				winston.info('TWITCH: Setting streaming to FALSE.');
-				streaming = false;
-			} else {
-				winston.info('TWITCH: Setting streaming to TRUE.');
-				streaming = true;
-			}
-		});
-}, 30000);
-
 function currentUsersAndGuildsGame() {
 	if (streaming) {
 		winston.info('PLAYING GAME: Setting playing game WITH streaming!');
