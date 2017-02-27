@@ -91,7 +91,7 @@ client.on('error', winston.error)
 					**\ toodee!leave**: Leaves the voice channel the bot is currently in.
 					
 					**2DFam Radio:**
-					W: http://community.2dfam.com/radio/
+					W: http://radio.2dfam.com
 					T: http://twitter.com/2DFam_Radio
 					
 					You can also download our apps, more information here: http://radio.2dfam.com/#apps
