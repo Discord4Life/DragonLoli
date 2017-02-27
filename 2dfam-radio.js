@@ -49,18 +49,6 @@ function connectWS(info) {
 }
 
 function currentUsersAndGuildsGame() {
-	if (streaming) {
-		winston.info('PLAYING GAME: Setting playing game WITH streaming!');
-		client.user.setGame(`for ${listeners} on ${client.guilds.size} servers`, 'https://twitch.tv/listen_moe');
-	} else {
-		winston.info('PLAYING GAME: Setting playing game WITHOUT streaming!');
-		client.user.setGame(`for ${listeners} on ${client.guilds.size} servers`);
-	}
-
-	return setTimeout(currentSongGame, 10000);
-}
-
-function currentUsersAndGuildsGame() {
 	client.user.setGame(`for ${listeners} on ${client.guilds.size} servers`);
 	
 	return setTimeout(TouchingAndrew, 20000);
