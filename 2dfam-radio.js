@@ -114,7 +114,7 @@ client.on('error', winston.error)
 
 		if (!msg.content.startsWith(prefix)) return;
 
-		const permission = msg.channel.permissionsFor(msg.client.user);
+		const permission = msg.channel.permissionsFor(client.user);
 		if (!permission || !permission.hasPermission('SEND_MESSAGES')) return;
 
 		const ignored = guilds.get(msg.guild.id, 'ignore', []);
@@ -125,20 +125,14 @@ client.on('error', winston.error)
 
 		if (message.startsWith(`${prefix}join`)) {
 			if (!config.owners.includes(msg.author.id) && !manageGuild) {
-				if (msg.author.id === '83700966167150592') {
-					return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
-				}
+				if (msg.author.id === '83700966167150592') return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
 
 				return msg.reply('only a member with manage guild permission can add me to a voice channel, gomen! <(￢0￢)>');
 			}
 
-			if (client.voiceConnections.get(msg.guild.id)) {
-				return msg.reply('I am already in a voice channel here, baka! ｡゜(｀Д´)゜｡');
-			}
+			if (client.voiceConnections.get(msg.guild.id)) return msg.reply('I am already in a voice channel here, baka! ｡゜(｀Д´)゜｡');
 
-			if (!msg.member.voiceChannel) {
-				return msg.reply('you have to be in a voice channel to add me, baka! ｡゜(｀Д´)゜｡');
-			}
+			if (!msg.member.voiceChannel) return msg.reply('you have to be in a voice channel to add me, baka! ｡゜(｀Д´)゜｡');
 
 			const voiceChannel = msg.guild.channels.get(msg.member.voiceChannel.id);
 
@@ -147,20 +141,14 @@ client.on('error', winston.error)
 			return msg.channel.sendMessage(`Streaming to your server now, ${msg.author}-san! (* ^ ω ^)`);
 		} else if (message.startsWith(`${prefix}leave`)) {
 			if (!config.owners.includes(msg.author.id) && !manageGuild) {
-				if (msg.author.id === '83700966167150592') {
-					return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
-				}
+				if (msg.author.id === '83700966167150592') return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
 
 				return msg.reply('only a member with manage guild permission can remove me from a voice channel, gomen! <(￢0￢)>');
 			}
 
-			if (!client.voiceConnections.get(msg.guild.id)) {
-				return msg.reply('you didn\'t add me to a voice channel yet, baka! ｡゜(｀Д´)゜｡');
-			}
+			if (!client.voiceConnections.get(msg.guild.id)) return msg.reply('you didn\'t add me to a voice channel yet, baka! ｡゜(｀Д´)゜｡');
 
-			if (!msg.member.voiceChannel) {
-				return msg.reply('you have to be in a voice channel to remove me, baka! ｡゜(｀Д´)゜｡');
-			}
+			if (!msg.member.voiceChannel) return msg.reply('you have to be in a voice channel to remove me, baka! ｡゜(｀Д´)゜｡');
 
 			const voiceChannel = client.voiceConnections.get(msg.guild.id);
 
@@ -193,9 +181,7 @@ client.on('error', winston.error)
 				color: 15473237
 			});
 		} else if (message.startsWith(`${prefix}eval`)) {
-			if (!config.owners.includes(msg.author.id)) {
-				return msg.channel.sendMessage('Only the Botowners can eval, gomen! <(￢0￢)>');
-			}
+			if (!config.owners.includes(msg.author.id)) return msg.channel.sendMessage('Only the Botowners can eval, gomen! <(￢0￢)>');
 
 			let result;
 			try {
@@ -208,9 +194,7 @@ client.on('error', winston.error)
 			return msg.channel.sendCode('javascript', result, { split: true });
 		} else if (message.startsWith(`${prefix}prefix`)) {
 			if (!config.owners.includes(msg.author.id) && !manageGuild) {
-				if (msg.author.id === '83700966167150592') {
-					return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
-				}
+				if (msg.author.id === '83700966167150592') return msg.channel.sendMessage('I won\'t do that, tawake. （｀Δ´）！');
 
 				return msg.reply('only a member with manage guild permission can change my prefix, gomen! <(￢0￢)>');
 			}
@@ -221,18 +205,14 @@ client.on('error', winston.error)
 				return msg.channel.sendMessage(`Prefix resetted to \`~~\` (⌒_⌒;)`);
 			}
 
-			if (/[a-zA-Z0-9\s\n]/.test(msg.content.substr(prefix.length + 7))) {
-				return msg.channel.sendMessage('Prefix can\'t be a letter, number, or whitespace character, gomen! <(￢0￢)>');
-			}
+			if (/[a-zA-Z0-9\s\n]/.test(msg.content.substr(prefix.length + 7))) return msg.channel.sendMessage('Prefix can\'t be a letter, number, or whitespace character, gomen! <(￢0￢)>');
 
 			winston.info(`PREFIX CHANGE: "${msg.content.substr(prefix.length + 7)}" ON GUILD ${msg.guild.name} (${msg.guild.id})`);
 			guilds.set(msg.guild.id, 'prefix', msg.content.substr(prefix.length + 7));
 			return msg.channel.sendMessage(`Prefix changed to \`${msg.content.substr(prefix.length + 7)}\` (⌒_⌒;)`);
 		} else if (message.startsWith(`${prefix}ignore`)) {
-			if (!config.owners.includes(msg.author.id) && !manageGuild) {
-				return msg.reply('only a member with manage guild permission can change ignored channels, gomen! <(￢0￢)>');
-			}
-
+			if (!config.owners.includes(msg.author.id) && !manageGuild) return msg.reply('only a member with manage guild permission can change ignored channels, gomen! <(￢0￢)>');
+			
 			if (msg.content === `${prefix}ignore all`) {
 				const channels = msg.guild.channels;
 
@@ -242,10 +222,8 @@ client.on('error', winston.error)
 				return msg.reply('gotcha! I\'m going to ignore all channels now. (￣▽￣)');
 			}
 
-			if (ignored.includes(msg.channel.id)) {
-				return msg.reply('this channel is already on the ignore list, baka! ｡゜(｀Д´)゜｡');
-			}
-
+			if (ignored.includes(msg.channel.id)) return msg.reply('this channel is already on the ignore list, baka! ｡゜(｀Д´)゜｡');
+			
 			ignored.push(msg.channel.id);
 
 			winston.info(`CHANNEL IGNORE: (${msg.channel.id}) ON GUILD ${msg.guild.name} (${msg.guild.id})`);
@@ -266,9 +244,7 @@ client.on('error', winston.error)
 				return msg.reply('gotcha! I\'m baaack!  ＼(≧▽≦)／ (not going to ignore any channels anymore).');
 			}
 
-			if (!ignored.includes(msg.channel.id)) {
-				return msg.reply('this channel isn\'t on the ignore list, gomen! <(￢0￢)>');
-			}
+			if (!ignored.includes(msg.channel.id)) return msg.reply('this channel isn\'t on the ignore list, gomen! <(￢0￢)>');
 
 			if (ignored.length === 1) {
 				winston.info(`CHANNEL UNIGNORE: (${msg.channel.id}) ON GUILD ${msg.guild.name} (${msg.guild.id})`);
@@ -288,7 +264,7 @@ client.on('error', winston.error)
 		}
 	});
 
-client.login(config.token);
+client.login(config.token).catch(winston.error);
 
 process.on('unhandledRejection', err => {
 	winston.error(`Uncaught Promise Error:\n${err.stack}`);
