@@ -74,7 +74,6 @@ client.on('error', winston.error)
 	})
 	.on('disconnect', () => {
 		winston.warn('CLIENT: Disconnected!');
-		clearInterval(streamCheck);
 		guilds.destroy();
 		process.exit(1);
 	})
